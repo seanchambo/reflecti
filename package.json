@@ -4,7 +4,7 @@
   "description": "A microframework frontend thats easy",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest --coverage",
+    "test": "jest",
     "lint": "tslint --fix src/**/*.ts"
   },
   "author": "Sean Chamberlain",
@@ -43,9 +43,12 @@
       "json",
       "node"
     ],
-    "collectCoverage": false,
+    "collectCoverage": true,
     "collectCoverageFrom": [
       "src/**/*.ts"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/src/index.d.ts"
     ],
     "verbose": true
   }
