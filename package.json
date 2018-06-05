@@ -1,0 +1,52 @@
+{
+  "name": "reflecti",
+  "version": "0.0.0",
+  "description": "A microframework frontend thats easy",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "lint": "tslint --fix src/**/*.ts"
+  },
+  "author": "Sean Chamberlain",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^22.2.3",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^23.0.1",
+    "ts-jest": "^22.4.6",
+    "tslint": "^5.10.0",
+    "tslint-config-airbnb": "^5.9.2",
+    "typescript": "^2.8.3"
+  },
+  "babel": {
+    "presets": "env",
+    "plugins": [
+      [
+        "transform-react-jsx",
+        {
+          "pragma": "r"
+        }
+      ]
+    ]
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "/test/.+\\.test.ts",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "collectCoverage": false,
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "verbose": true
+  }
+}
