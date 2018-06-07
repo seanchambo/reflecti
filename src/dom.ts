@@ -1,5 +1,7 @@
 import { ComponentNode, Element, VirtualNode } from './index.d';
 
+import { classNames } from './classNames';
+
 export const createElement = (component: ComponentNode): Element => {
   if (typeof component === 'string' || typeof component === 'number') {
     return document.createTextNode(component.toString());
@@ -41,9 +43,28 @@ export const updateAttribute = (
   newValue: any,
 ): void => {
   if (oldValue !== newValue && attributeName !== 'key') {
-    if (attributeName === 'className') { element.className = newValue || ''; }
-    else if (!newValue) { element.removeAttribute(attributeName); }
-    else { element.setAttribute(attributeName, newValue); }
+    if (attributeName === 'className') {
+      element.className = classNames(newValue) || '';
+    } else if (attributeName === 'style') {
+      if (!newValue || typeof newValue === 'string' || typeof oldValue === 'string') {
+        element.style.cssText = newValue || '';
+      }
+      if (newValue && typeof newValue === 'object') {
+        if (typeof oldValue === 'object') { for (const i in oldValue) { element.style[i] = ''; } }
+        for (const i in newValue) { element.style[i] = newValue[i]; }
+      }
+    } else if (attributeName[0] === 'o' && attributeName[1] === 'n') {
+      const eventName = attributeName.toLowerCase().substring(2);
+      if (newValue) {
+        if (!oldValue) { element.addEventListener(eventName, newValue); }
+      } else {
+        element.removeEventListener(eventName, oldValue);
+      }
+    } else if (!newValue) {
+      element.removeAttribute(attributeName);
+    } else {
+      element.setAttribute(attributeName, newValue);
+    }
   }
 };
 

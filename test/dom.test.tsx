@@ -42,6 +42,16 @@ describe('#createElement', () => {
 
     expect(element.innerHTML).toBe('<div class="test">abcd</div>');
   });
+
+  test('with event listener', () => {
+    let value = false;
+    const func = () => { value = !value; };
+    const component = <div onClick={func} />;
+    const element = createElement(component) as HTMLElement;
+    element.click();
+
+    expect(value).toBe(true);
+  });
 });
 
 describe('#replaceElement', () => {
@@ -106,5 +116,98 @@ describe('#updateElement', () => {
     updateElement(document.body.firstChild, oldComponent, newComponent);
 
     expect(document.body.innerHTML).toBe('<div align="left"></div>');
+  });
+
+  test('add style with string', () => {
+    document.body.innerHTML = '<div></div>';
+    const oldComponent = <div />;
+    const newComponent = <div style="display: none;" />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+
+    expect(document.body.innerHTML).toBe('<div style="display: none;"></div>');
+  });
+
+  test('remove string style', () => {
+    document.body.innerHTML = '<div style="display: none;"></div>';
+    const oldComponent = <div style="display: none;" />;
+    const newComponent = <div />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+
+    expect(document.body.innerHTML).toBe('<div style=""></div>');
+  });
+
+  test('add object style', () => {
+    document.body.innerHTML = '<div></div>';
+    const oldComponent = <div />;
+    const newComponent = <div style={{ fontSize: '16px' }} />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+
+    expect(document.body.innerHTML).toBe('<div style="font-size: 16px;"></div>');
+  });
+
+  test('remove object style', () => {
+    document.body.innerHTML = '<div style="font-size: 16px;"></div>';
+    const oldComponent = <div style={{ fontSize: '16px' }} />;
+    const newComponent = <div />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+
+    expect(document.body.innerHTML).toBe('<div style=""></div>');
+  });
+
+  test('replace string style with object style', () => {
+    document.body.innerHTML = '<div style="display: none;"></div>';
+    const oldComponent = <div style="display: none;" />;
+    const newComponent = <div style={{ fontSize: '16px' }} />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+
+    expect(document.body.innerHTML).toBe('<div style="font-size: 16px;"></div>');
+  });
+
+  test('replace object style with object style', () => {
+    document.body.innerHTML = '<div style="display: none;"></div>';
+    const oldComponent = <div style={{ display: 'none' }} />;
+    const newComponent = <div style={{ fontSize: '16px' }} />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+
+    expect(document.body.innerHTML).toBe('<div style="font-size: 16px;"></div>');
+  });
+
+  test('add event listener', () => {
+    let value = false;
+    const func = () => { value = !value; };
+    document.body.innerHTML = '<div></div>';
+    const oldComponent = <div />;
+    const newComponent = <div onClick={func} />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+    (document.body.firstChild as HTMLElement).click();
+
+    expect(value).toBe(true);
+  });
+
+  test('remove event listener', () => {
+    let value = false;
+    const func = () => { value = !value; };
+    document.body.innerHTML = '<div></div>';
+    document.body.firstChild.addEventListener('click', func);
+    const oldComponent = <div onClick={func} />;
+    const newComponent = <div />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+    (document.body.firstChild as HTMLElement).click();
+
+    expect(value).toBe(false);
+  });
+
+  test('replace event listener', () => {
+    let value: string | boolean = false;
+    const func = () => { value = !value; };
+    const func2 = () => { value = 'bob'; };
+    document.body.innerHTML = '<div></div>';
+    document.body.firstChild.addEventListener('click', func);
+    const oldComponent = <div onClick={func} />;
+    const newComponent = <div onClick={func2} />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+    (document.body.firstChild as HTMLElement).click();
+
+    expect(value).toBe(true);
   });
 });
