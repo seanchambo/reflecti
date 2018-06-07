@@ -1,7 +1,9 @@
+import { App } from ".";
+
 export interface VirtualNode {
   type: string;
   attributes: object;
-  children: ComponentNode[];
+  children: (ComponentNode | ((app: App) => ComponentNode))[];
   key?: string;
 }
 
@@ -11,6 +13,6 @@ export interface ChildCompareData {
   component: ComponentNode;
 }
 
-export type ComponentNode = VirtualNode | number | string;
+export type ComponentNode = VirtualNode | number | string | Date;
 
 export type Element = HTMLElement | Text | Node;

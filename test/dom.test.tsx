@@ -22,6 +22,14 @@ describe('#createElement', () => {
     expect(element.nodeName).toBe('#text');
   });
 
+  test('date', () => {
+    const component = new Date();
+    const element = createElement(component);
+
+    expect(element.nodeValue).toBe(component.toString());
+    expect(element.nodeName).toBe('#text');
+  });
+
   test('container', () => {
     const component = <div />;
     const element = createElement(component);
@@ -73,6 +81,16 @@ describe('#replaceElement', () => {
 });
 
 describe('#updateElement', () => {
+  // this should never happen but still need to test
+  test('update text element with vnode', () => {
+    document.body.innerHTML = 'abcd';
+    const oldComponent = <div />;
+    const newComponent = <div className="test" />;
+    updateElement(document.body.firstChild, oldComponent, newComponent);
+
+    expect(document.body.innerHTML).toBe('abcd');
+  });
+
   test('update className', () => {
     document.body.innerHTML = '<div></div>';
     const oldComponent = <div />;

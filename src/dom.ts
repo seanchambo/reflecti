@@ -1,9 +1,12 @@
+/* tslint:disable:no-parameter-reassignment */
+
 import { ComponentNode, Element, VirtualNode } from './index.d';
 
 import { classNames } from './classNames';
+import { App } from '.';
 
-export const createElement = (component: ComponentNode): Element => {
-  if (typeof component === 'string' || typeof component === 'number') {
+export const createElement = (component: ComponentNode, app?: App): Element => {
+  if (typeof component === 'string' || typeof component === 'number' || component instanceof Date) {
     return document.createTextNode(component.toString());
   }
 
@@ -13,8 +16,12 @@ export const createElement = (component: ComponentNode): Element => {
     updateAttribute(element, attribute, null, component.attributes[attribute]);
   });
 
-  component.children.forEach((child: ComponentNode) => {
-    const childElement = createElement(child);
+  component.children.forEach((
+    child: ComponentNode | ((app: App) => ComponentNode),
+    index: number,
+  ) => {
+    if (typeof child === 'function') { component.children[index] = child = child(app); }
+    const childElement = createElement(child, app);
     element.appendChild(childElement);
   });
 
@@ -26,8 +33,9 @@ export const replaceElement = (
   element: Element,
   oldComponent: ComponentNode,
   newComponent: ComponentNode,
+  app?: App,
 ): Element => {
-  const newElement = createElement(newComponent);
+  const newElement = createElement(newComponent, app);
   if (element === null || element === undefined) { parent.appendChild(newElement); }
   else { parent.insertBefore(newElement, element); }
 

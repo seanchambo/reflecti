@@ -1,31 +1,43 @@
-import { ComponentNode, Element, ChildCompareData } from './index.d';
+/* tslint:disable:no-parameter-reassignment */
+
+import { ComponentNode, Element, ChildCompareData, VirtualNode } from './index.d';
+import { App } from './index';
 import { createElement, replaceElement, updateElement } from './dom';
 
 export const patch = (
   parent: Element,
   element: Element,
   oldComponent: ComponentNode,
-  newComponent: ComponentNode,
-): Element => {
-  if (oldComponent === newComponent) {
-    return element;
-  }
-  else if (typeof oldComponent === 'string' || typeof oldComponent === 'number') {
-    if (typeof newComponent === 'string' || typeof newComponent === 'number') {
-      element.nodeValue = newComponent.toString();
-      return element;
-    }
+  newComponent: ComponentNode | ((app: App) => ComponentNode),
+  app?: App,
+): [ComponentNode, Element] => {
+  newComponent = typeof newComponent === 'function' ? newComponent(app) : newComponent;
 
-    return replaceElement(parent, element, oldComponent, newComponent);
-  }
-  else if (typeof newComponent === 'string' || typeof newComponent === 'number') {
-    return replaceElement(parent, element, oldComponent, newComponent);
-  }
-  else if (oldComponent === null) {
-    return replaceElement(parent, element, oldComponent, newComponent);
-  }
-  else if (oldComponent.type !== newComponent.type) {
-    return replaceElement(parent, element, oldComponent, newComponent);
+  if (oldComponent === newComponent) {
+  } else if (
+    typeof oldComponent === 'string' ||
+    typeof oldComponent === 'number' ||
+    oldComponent instanceof Date
+  ) {
+    if (
+      typeof newComponent === 'string' ||
+      typeof newComponent === 'number' ||
+      newComponent instanceof Date
+    ) {
+      element.nodeValue = newComponent.toString();
+    } else {
+      element = replaceElement(parent, element, oldComponent, newComponent, app);
+    }
+  } else if (
+    typeof newComponent === 'string' ||
+    typeof newComponent === 'number' ||
+    newComponent instanceof Date
+  ) {
+    element = replaceElement(parent, element, oldComponent, newComponent, app);
+  } else if (oldComponent === null) {
+    element = replaceElement(parent, element, oldComponent, newComponent, app);
+  } else if (oldComponent.type !== newComponent.type) {
+    element = replaceElement(parent, element, oldComponent, newComponent, app);
   } else {
     updateElement(element, oldComponent, newComponent);
 
@@ -36,16 +48,33 @@ export const patch = (
 
     oldComponent.children.forEach((child, index) => {
       oldElements.push(element.childNodes[index]);
-      if (typeof child !== 'string' && typeof child !== 'number' && child.key) {
-        oldKeys[child.key] = { index, element: element.childNodes[index], component: child };
-      } else {
-        oldUnkeyed.push({ index, element: element.childNodes[index], component: child });
+      if (typeof child !== 'function') {
+        if (
+          typeof child !== 'string' &&
+          typeof child !== 'number' &&
+          !(child instanceof Date) &&
+          child.key
+        ) {
+          oldKeys[child.key] = { index, element: element.childNodes[index], component: child };
+        } else {
+          oldUnkeyed.push({ index, element: element.childNodes[index], component: child });
+        }
       }
     });
 
     newComponent.children.forEach((child, index) => {
       let newKey: string = null;
-      if (typeof child !== 'number' && typeof child !== 'string' && child.key) {
+
+      if (typeof child === 'function') {
+        (newComponent as VirtualNode).children[index] = child = child(app);
+      }
+
+      if (
+        typeof child !== 'number' &&
+        typeof child !== 'string' &&
+        !(child instanceof Date) &&
+        child.key
+      ) {
         newKey = child.key;
       }
 
@@ -53,8 +82,8 @@ export const patch = (
         const movedComponent = oldKeys[newKey] || oldUnkeyed.pop();
 
         if (!movedComponent) {
-          const newElement = createElement(child);
-          element.insertBefore(newElement, element.childNodes[index]);
+          const createdElement = createElement(child);
+          element.insertBefore(createdElement, element.childNodes[index]);
         } else {
           if (index === movedComponent.index) {
             patch(
@@ -62,6 +91,7 @@ export const patch = (
               movedComponent.element,
               movedComponent.component,
               child,
+              app,
             );
           } else {
             patch(
@@ -69,12 +99,13 @@ export const patch = (
               element.insertBefore(movedComponent.element, element.childNodes[index]),
               movedComponent.component,
               child,
+              app,
             );
           }
         }
       } else {
-        const newElement = createElement(child);
-        element.insertBefore(newElement, element.childNodes[index]);
+        const createdElement = createElement(child);
+        element.insertBefore(createdElement, element.childNodes[index]);
       }
 
       if (newKey) {
@@ -83,8 +114,15 @@ export const patch = (
     });
 
     oldComponent.children.forEach((child, index) => {
-      if (typeof child !== 'number' && typeof child !== 'string' && child.key && !newKeys[child.key]) {
-        element.removeChild(oldElements[index]);
+      if (
+        typeof child !== 'number' &&
+        typeof child !== 'string' &&
+        typeof child !== 'function' &&
+        !(child instanceof Date)
+      ) {
+        if (child.key && !newKeys[child.key]) {
+          element.removeChild(oldElements[index]);
+        }
       }
     });
 
@@ -92,4 +130,6 @@ export const patch = (
       element.removeChild(data.element);
     });
   }
+
+  return [newComponent, element];
 };

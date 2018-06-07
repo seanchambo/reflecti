@@ -1,12 +1,12 @@
-import { r } from '../src';
+import { r, App } from '../src';
 import { patch } from '../src/patch';
 import { createElement } from '../src/dom';
 
-const testPatch = (oldComponent, newComponent, html) => {
+const testPatch = (oldComponent, newComponent, html, app?) => {
   const element = createElement(oldComponent);
   document.body.firstChild.appendChild(element);
 
-  patch(document.body.firstChild, element, oldComponent, newComponent);
+  patch(document.body.firstChild, element, oldComponent, newComponent, app);
 
   expect(document.body.innerHTML).toBe(html);
 };
@@ -55,6 +55,14 @@ test('when component changes to another type of component', () => {
   const component = <div>abcd</div>;
   const newComponent = <span>abcd</span>;
   testPatch(component, newComponent, '<div><span>abcd</span></div>');
+});
+
+test('component with state', () => {
+  const app = new App({ counter: 2 }, {});
+  const component = <div>1</div>;
+  const Component = props => ({ state: globalState }) => <div>{globalState.counter}</div>;
+  const newComponent = <Component />;
+  testPatch(component, newComponent, '<div><div>2</div></div>', app);
 });
 
 describe('when children change', () => {
@@ -125,5 +133,13 @@ describe('when children change', () => {
     const newComponent = <main><div key="b">B</div><div key="c">C</div><div key="a">A</div></main>;
     const html = '<div><main><div>B</div><div>C</div><div>A</div></main></div>';
     testPatch(component, newComponent, html);
+  });
+
+  test('component with state', () => {
+    const app = new App({ counter: 2 }, {});
+    const component = <main><div>1</div></main>;
+    const Component = props => ({ state: globalState }) => <div>{globalState.counter}</div>;
+    const newComponent = <main><Component /></main>;
+    testPatch(component, newComponent, '<div><main><div>2</div></main></div>', app);
   });
 });
