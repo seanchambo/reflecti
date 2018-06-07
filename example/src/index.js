@@ -8,13 +8,17 @@ const actions = {
 
 const app = new App(state, actions);
 
+const IncrementButton = props => {
+  return <button onClick={() => { props.increment(props.value) }}>{props.value > 0 ? '+' : '-'}</button>
+}
+
 const Counter = props => ({ state, actions }) => {
   return (
     <div>
       <h1>{state.counter}</h1>
       <div>
-        <button onClick={() => { actions.increment(-1) }}>-</button>
-        <button onClick={() => { actions.increment(1) }}>+</button>
+        <IncrementButton value={-1} increment={actions.increment} />
+        <IncrementButton value={1} increment={actions.increment} />
       </div>
     </div>
   )
