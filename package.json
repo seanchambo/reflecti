@@ -1,14 +1,28 @@
 {
   "name": "reflecti",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A microframework frontend thats easy",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest -c .jestrc.json",
     "lint": "tslint --fix src/**/*.ts"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "reflecti",
+    "frontend",
+    "framework",
+    "virtual dom",
+    "vdom",
+    "components"
+  ],
   "author": "Sean Chamberlain",
   "license": "MIT",
+  "typings": "./src/index.d.ts",
+  "repository": "seanchambo/reflecti",
   "devDependencies": {
     "@types/jest": "^22.2.3",
     "babel-plugin-transform-react-jsx": "^6.24.1",
@@ -18,38 +32,5 @@
     "tslint": "^5.10.0",
     "tslint-config-airbnb": "^5.9.2",
     "typescript": "^2.8.3"
-  },
-  "babel": {
-    "presets": "env",
-    "plugins": [
-      [
-        "transform-react-jsx",
-        {
-          "pragma": "r"
-        }
-      ]
-    ]
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testRegex": "/test/.+\\.test.ts",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ],
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.ts"
-    ],
-    "coveragePathIgnorePatterns": [
-      "<rootDir>/src/index.d.ts"
-    ],
-    "verbose": true
   }
 }
