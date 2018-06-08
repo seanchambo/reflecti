@@ -10,7 +10,6 @@ export interface VirtualNode {
 export interface ChildCompareData {
   index: number;
   element: Element;
-  component: ComponentNode;
 }
 
 export type ComponentNode = VirtualNode | number | string | Date;

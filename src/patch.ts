@@ -7,39 +7,39 @@ import { createElement, replaceElement, updateElement } from './dom';
 export const patch = (
   parent: Element,
   element: Element,
-  oldComponent: ComponentNode,
-  newComponent: ComponentNode | ((app: App) => ComponentNode),
+  component: ComponentNode | ((app: App) => ComponentNode),
   app?: App,
-): [ComponentNode, Element] => {
-  newComponent = typeof newComponent === 'function' ? newComponent(app) : newComponent;
+): Element => {
+  const oldComponent = element ? element['_reflecti'] : null;
+  component = typeof component === 'function' ? component(app) : component;
 
-  if (oldComponent === newComponent) {
+  if (oldComponent === component) {
   } else if (
     typeof oldComponent === 'string' ||
     typeof oldComponent === 'number' ||
     oldComponent instanceof Date
   ) {
     if (
-      typeof newComponent === 'string' ||
-      typeof newComponent === 'number' ||
-      newComponent instanceof Date
+      typeof component === 'string' ||
+      typeof component === 'number' ||
+      component instanceof Date
     ) {
-      element.nodeValue = newComponent.toString();
+      element.nodeValue = component.toString();
     } else {
-      element = replaceElement(parent, element, oldComponent, newComponent, app);
+      element = replaceElement(parent, element, oldComponent, component, app);
     }
   } else if (
-    typeof newComponent === 'string' ||
-    typeof newComponent === 'number' ||
-    newComponent instanceof Date
+    typeof component === 'string' ||
+    typeof component === 'number' ||
+    component instanceof Date
   ) {
-    element = replaceElement(parent, element, oldComponent, newComponent, app);
+    element = replaceElement(parent, element, oldComponent, component, app);
   } else if (oldComponent === null) {
-    element = replaceElement(parent, element, oldComponent, newComponent, app);
-  } else if (oldComponent.type !== newComponent.type) {
-    element = replaceElement(parent, element, oldComponent, newComponent, app);
+    element = replaceElement(parent, element, oldComponent, component, app);
+  } else if (oldComponent.type !== component.type) {
+    element = replaceElement(parent, element, oldComponent, component, app);
   } else {
-    updateElement(element, oldComponent, newComponent);
+    updateElement(element, oldComponent, component);
 
     const oldElements: Element[] = [];
     const oldUnkeyed: ChildCompareData[] = [];
@@ -48,26 +48,23 @@ export const patch = (
 
     oldComponent.children.forEach((child, index) => {
       oldElements.push(element.childNodes[index]);
-      if (typeof child !== 'function') {
-        if (
-          typeof child !== 'string' &&
-          typeof child !== 'number' &&
-          !(child instanceof Date) &&
-          child.key
-        ) {
-          oldKeys[child.key] = { index, element: element.childNodes[index], component: child };
-        } else {
-          oldUnkeyed.push({ index, element: element.childNodes[index], component: child });
-        }
+      child = element.childNodes[index]['_reflecti'];
+      if (
+        typeof child !== 'string' &&
+        typeof child !== 'number' &&
+        !(child instanceof Date) &&
+        child.key
+      ) {
+        oldKeys[child.key] = { index, element: element.childNodes[index] };
+      } else {
+        oldUnkeyed.push({ index, element: element.childNodes[index] });
       }
     });
 
-    newComponent.children.forEach((child, index) => {
+    component.children.forEach((child, index) => {
       let newKey: string = null;
 
-      if (typeof child === 'function') {
-        (newComponent as VirtualNode).children[index] = child = child(app);
-      }
+      if (typeof child === 'function') { child = child(app); }
 
       if (
         typeof child !== 'number' &&
@@ -82,14 +79,12 @@ export const patch = (
         const movedComponent = oldKeys[newKey] || oldUnkeyed.pop();
 
         if (!movedComponent) {
-          const createdElement = createElement(child);
-          element.insertBefore(createdElement, element.childNodes[index]);
+          element.insertBefore(createElement(child), element.childNodes[index]);
         } else {
           if (index === movedComponent.index) {
             patch(
               element,
               movedComponent.element,
-              movedComponent.component,
               child,
               app,
             );
@@ -97,15 +92,13 @@ export const patch = (
             patch(
               element,
               element.insertBefore(movedComponent.element, element.childNodes[index]),
-              movedComponent.component,
               child,
               app,
             );
           }
         }
       } else {
-        const createdElement = createElement(child);
-        element.insertBefore(createdElement, element.childNodes[index]);
+        element.insertBefore(createElement(child), element.childNodes[index]);
       }
 
       if (newKey) {
@@ -114,10 +107,10 @@ export const patch = (
     });
 
     oldComponent.children.forEach((child, index) => {
+      child = oldElements[index]['_reflecti'];
       if (
         typeof child !== 'number' &&
         typeof child !== 'string' &&
-        typeof child !== 'function' &&
         !(child instanceof Date)
       ) {
         if (child.key && !newKeys[child.key]) {
@@ -131,5 +124,5 @@ export const patch = (
     });
   }
 
-  return [newComponent, element];
+  return element;
 };

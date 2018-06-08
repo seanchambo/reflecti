@@ -1,4 +1,4 @@
-import { r, App } from '../../dist';
+import { r, App } from '../../dist/reflecti';
 
 const state = { counter: 0 };
 

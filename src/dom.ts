@@ -7,7 +7,9 @@ import { App } from '.';
 
 export const createElement = (component: ComponentNode, app?: App): Element => {
   if (typeof component === 'string' || typeof component === 'number' || component instanceof Date) {
-    return document.createTextNode(component.toString());
+    const element = document.createTextNode(component.toString());
+    element['_reflecti'] = component;
+    return element;
   }
 
   const element = document.createElement(component.type);
@@ -20,10 +22,12 @@ export const createElement = (component: ComponentNode, app?: App): Element => {
     child: ComponentNode | ((app: App) => ComponentNode),
     index: number,
   ) => {
-    if (typeof child === 'function') { component.children[index] = child = child(app); }
+    if (typeof child === 'function') { child = child(app); }
     const childElement = createElement(child, app);
     element.appendChild(childElement);
   });
+
+  element['_reflecti'] = { ...component };
 
   return element;
 };
@@ -85,5 +89,7 @@ export const updateElement = (
     Object.keys({ ...oldComponent.attributes, ...newComponent.attributes }).forEach((key) => {
       updateAttribute(element, key, oldComponent.attributes[key], newComponent.attributes[key]);
     });
+
+    element['_reflecti'] = { ...newComponent };
   }
 };

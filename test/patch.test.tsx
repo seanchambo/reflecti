@@ -6,7 +6,7 @@ const testPatch = (oldComponent, newComponent, html, app?) => {
   const element = createElement(oldComponent);
   document.body.firstChild.appendChild(element);
 
-  patch(document.body.firstChild, element, oldComponent, newComponent, app);
+  patch(document.body.firstChild, element, newComponent, app);
 
   expect(document.body.innerHTML).toBe(html);
 };
