@@ -130,8 +130,10 @@ describe('when children change', () => {
 
   test('removing non-keyed elements', () => {
     const component = <main><div>A</div><div>B</div><div>D</div><div key="c">C</div></main>;
-    const newComponent = <main><div key="b">B</div><div key="c">C</div><div key="a">A</div></main>;
-    const html = '<div><main><div>B</div><div>C</div><div>A</div></main></div>';
+    const newComponent = <main>
+      <div key="b">B</div><div key="c"><p>C</p></div><div key="a">A</div>
+    </main>;
+    const html = '<div><main><div>B</div><div><p>C</p></div><div>A</div></main></div>';
     testPatch(component, newComponent, html);
   });
 

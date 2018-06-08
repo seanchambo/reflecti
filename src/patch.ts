@@ -46,6 +46,21 @@ export const patch = (
     const oldKeys: { [key: string]: ChildCompareData } = {};
     const newKeys: { [key: string]: ComponentNode } = {};
 
+    if (oldComponent.children.length === 1 && component.children.length === 1) {
+      if (
+        (typeof oldComponent.children[0] === 'string' ||
+          typeof oldComponent.children[0] === 'number' ||
+          oldComponent.children[0] instanceof Date) &&
+        (typeof component.children[0] === 'string' ||
+          typeof component.children[0] === 'number' ||
+          component.children[0] instanceof Date)
+      ) {
+        element.childNodes[0].nodeValue = component.children[0].toString();
+        element.childNodes[0]['_reflecti'] = component;
+        return element;
+      }
+    }
+
     oldComponent.children.forEach((child, index) => {
       oldElements.push(element.childNodes[index]);
       child = element.childNodes[index]['_reflecti'];
