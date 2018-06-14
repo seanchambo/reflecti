@@ -1,0 +1,22 @@
+{
+  "transform": {
+    "^.+\\.tsx?$": "ts-jest"
+  },
+  "testRegex": "/test/.+\\.test.ts",
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx",
+    "json",
+    "node"
+  ],
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "src/**/*.ts"
+  ],
+  "coveragePathIgnorePatterns": [
+    "<rootDir>/src/index.d.ts"
+  ],
+  "verbose": true
+}

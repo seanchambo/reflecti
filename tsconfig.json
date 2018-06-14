@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "inlineSourceMap": true,
+    "types": [
+      "jest"
+    ],
+    "jsx": "react",
+    "jsxFactory": "r",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "outDir": "dist",
+    "lib": [
+      "es6",
+      "dom"
+    ],
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

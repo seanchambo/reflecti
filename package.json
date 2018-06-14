@@ -1,0 +1,38 @@
+{
+  "name": "reflecti",
+  "version": "0.1.0",
+  "description": "A microframework frontend thats easy",
+  "main": "dist/reflecti.js",
+  "scripts": {
+    "test": "jest -c .jestrc.json",
+    "lint": "tslint --fix src/**/*.ts",
+    "build": "tsc && babel dist --out-dir dist && uglifyjs dist/*.js -mc --source-map -o dist/reflecti.js"
+  },
+  "files": [
+    "dist/reflecti.js",
+    "src"
+  ],
+  "keywords": [
+    "reflecti",
+    "frontend",
+    "framework",
+    "virtual dom",
+    "vdom",
+    "components"
+  ],
+  "author": "Sean Chamberlain",
+  "license": "MIT",
+  "typings": "./src/index.d.ts",
+  "repository": "seanchambo/reflecti",
+  "devDependencies": {
+    "@types/jest": "^22.2.3",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^23.0.1",
+    "ts-jest": "^22.4.6",
+    "tslint": "^5.10.0",
+    "tslint-config-airbnb": "^5.9.2",
+    "typescript": "^2.8.3"
+  }
+}
