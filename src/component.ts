@@ -2,6 +2,7 @@ import { State, Actions, View, VNodeAttributes, VNodeChild, ComponentInterface }
 import { app } from './app';
 import { VNode } from './vnode';
 import { patch } from './patch';
+import { flushLifecycleEvents } from "./lifecycle";
 
 export class Component implements ComponentInterface {
   state: State;
@@ -51,6 +52,7 @@ export const withState = (state: State, actions: Actions) => {
               const rendered = this.render();
               this._element = patch(this._element.parentNode as HTMLElement, this._element, rendered);
               this._element["component"] = this;
+              flushLifecycleEvents();
             }
           }
         }

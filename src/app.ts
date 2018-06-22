@@ -1,5 +1,6 @@
 import { App, State, Actions } from "./index.d";
 import { patch } from "./patch";
+import { flushLifecycleEvents } from "./lifecycle";
 
 export const app: App = {
   state: null,
@@ -23,6 +24,7 @@ export const createApp = (state: State, actions: Actions) => {
       if (result && result !== app.state) {
         app.state = { ...app.state, ...result };
         app._element = patch(app._element.parentNode as HTMLElement, app._element, app._rootVNode);
+        flushLifecycleEvents();
       }
     }
   }
