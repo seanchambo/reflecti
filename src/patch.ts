@@ -1,5 +1,5 @@
 import { VNode } from "./vnode";
-import { replaceElement, updateElement, createElement } from './dom';
+import { replaceElement, updateElement, createElement, removeElement } from './dom';
 import { Component } from './component';
 
 export const patch = (parent: HTMLElement | Text, element: HTMLElement | Text, vnode: any | VNode): HTMLElement | Text => {
@@ -30,9 +30,7 @@ export const patch = (parent: HTMLElement | Text, element: HTMLElement | Text, v
 }
 
 export const patchComponent = (parent: HTMLElement | Text, element: HTMLElement | Text, vnode: VNode): HTMLElement | Text => {
-  if (!element) {
-    return replaceElement(parent, element, vnode)
-  }
+  if (!element) { return replaceElement(parent, element, vnode) }
 
   let newComponent = element["_component"];
   vnode.type = vnode.type as Function;
@@ -101,11 +99,11 @@ export const patchChildren = (element: HTMLElement, vnode: VNode) => {
   oldElements.forEach((childNode) => {
     const key = childNode["_props"] && childNode["_props"]["key"] || null
     if (childNode instanceof HTMLElement && childNode["_props"] && key && !newKeys[key]) {
-      element.removeChild(childNode);
+      removeElement(element, childNode);
     }
   });
 
   oldUnkeyed.forEach((data) => {
-    element.removeChild(data.element);
+    removeElement(element, data.element);
   });
 }
