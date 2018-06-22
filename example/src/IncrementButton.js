@@ -10,9 +10,9 @@ const view = props => (app, component) => {
   return (
     <button
       className={className}
-      onMouseEnter={() => { component.actions.hover(true) }}
-      onMouseLeave={() => { component.actions.hover(false) }}
-      onClick={() => { app.actions.increment(props.value) }}>
+      onmouseenter={() => { component.actions.hover(true) }}
+      onmouseleave={() => { component.actions.hover(false) }}
+      onclick={() => { app.actions.increment(props.value) }}>
       {props.value > 0 ? '+' : '-'}
     </button>
   )

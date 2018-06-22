@@ -39,7 +39,7 @@ describe('#createElement', () => {
   test('with event listener', () => {
     let value = false;
     const func = () => { value = !value; };
-    const component = <div onClick={func} />;
+    const component = <div onclick={func} />;
     const element = createElement(component) as HTMLElement;
     element.click();
 
@@ -157,7 +157,7 @@ describe('#updateElement', () => {
     let value = false;
     const func = () => { value = !value; };
     const oldComponent = <div />;
-    const newComponent = <div onClick={func} />;
+    const newComponent = <div onclick={func} />;
 
     const element = testUpdate(oldComponent, newComponent, '<div></div>') as HTMLElement;
 
@@ -168,7 +168,7 @@ describe('#updateElement', () => {
   test('remove event listener', () => {
     let value = false;
     const func = () => { value = !value; };
-    const oldComponent = <div onClick={func} />;
+    const oldComponent = <div onclick={func} />;
     const newComponent = <div />;
 
     const element = testUpdate(oldComponent, newComponent, '<div></div>') as HTMLElement;
@@ -181,8 +181,8 @@ describe('#updateElement', () => {
     let value: string | boolean = false;
     const func = () => { value = !value; };
     const func2 = () => { value = 'bob'; };
-    const oldComponent = <div onClick={func} />;
-    const newComponent = <div onClick={func2} />;
+    const oldComponent = <div onclick={func} />;
+    const newComponent = <div onclick={func2} />;
 
     const element = testUpdate(oldComponent, newComponent, '<div></div>') as HTMLElement;
 
