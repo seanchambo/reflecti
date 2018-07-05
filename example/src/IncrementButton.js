@@ -1,21 +1,19 @@
-import { r, withState } from '../../dist/reflecti';
+import { r } from '../../dist/reflecti';
 
-const state = { hovered: false }
+import { withHover } from './withHover';
 
-const actions = { hover: (value) => ({ hovered: value }) }
-
-const view = props => (app, component) => {
-  const className = [{ hovered: component.state.hovered }];
+const view = props => (app) => {
+  const className = [{ hovered: props.hovered }];
 
   return (
     <button
       className={className}
-      onmouseenter={() => { component.actions.hover(true) }}
-      onmouseleave={() => { component.actions.hover(false) }}
+      onmouseenter={() => { props.hover(true) }}
+      onmouseleave={() => { props.hover(false) }}
       onclick={() => { app.actions.increment(props.value) }}>
       {props.value > 0 ? '+' : '-'}
     </button>
   )
 }
 
-export default withState(state, actions)(view);
+export default withHover(view);

@@ -1,4 +1,4 @@
-import { r, createApp, mount, withState } from '../../dist/reflecti';
+import { r, createApp, mount } from '../../dist/reflecti';
 import IncrementButton from './IncrementButton';
 
 const state = { counter: 0 };
@@ -7,7 +7,7 @@ const actions = {
   increment: value => state => ({ counter: state.counter + value })
 }
 
-const app = createApp(state, actions);
+createApp(state, actions);
 
 const Counter = props => (app) => {
   return (
