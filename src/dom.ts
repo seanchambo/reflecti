@@ -1,80 +1,61 @@
-import { ComponentConstructor } from "./index.d";
-import { VNode } from "./vnode";
-import { classNames } from './classNames';
-import { Component } from "./component";
-import { addLifecycleEvent } from "./lifecycle";
+import RNode from "./rnode";
+import VNode from "./vnode";
+import classNames from './classNames';
+import patch from './patch';
 
-export const createElement = (vnode: VNode | string): HTMLElement | Text => {
+export const createElement = (rnode: RNode): HTMLElement | Text => {
   let element: HTMLElement | Text;
 
-  if (typeof vnode === 'string') {
-    element = document.createTextNode(vnode);
+  if (typeof rnode.nextVnode === 'string') {
+    element = document.createTextNode(rnode.nextVnode);
+    return element;
   } else {
-    if (typeof vnode.type === 'string') {
-      element = document.createElement(vnode.type)
-      updateElement(element, vnode, true);
-
-      vnode.children.forEach((childNode) => {
-        replaceElement(element, null, childNode);
-      });
+    if (typeof rnode.nextVnode.type === 'string') {
+      element = document.createElement(rnode.nextVnode.type);
+      return element;
     } else {
-      let component;
-      if (vnode.type.prototype && vnode.type.prototype.constructor) {
-        component = new (vnode.type as ComponentConstructor)(vnode.attributes, vnode.children);
-      } else {
-        component = new Component(vnode.attributes, vnode.children);
-        component.view = vnode.type;
-      }
-
-      const rendered = component.render();
-      element = createElement(rendered);
-      element["_component"] = component;
-      component._element = element;
+      throw new Error('Cant create element for Component');
     }
   }
-
-  if (typeof vnode !== 'string' && vnode.attributes.oncreate) {
-    addLifecycleEvent(() => { vnode.attributes.oncreate(element); });
-  }
-
-  return element;
 }
 
-export const replaceElement = (parent: HTMLElement | Text, element: HTMLElement | Text, vnode: VNode | string) => {
-  const newElement = createElement(vnode);
-  if (element === null || element === undefined) {
-    parent.appendChild(newElement);
+export const replaceElement = (rnode: RNode) => {
+  const element = createElement(rnode);
+  if (!rnode.element) {
+    rnode.getParentElement().appendChild(element);
   } else {
-    parent.insertBefore(newElement, element);
-    removeElement(parent, element);
+    rnode.getParentElement().insertBefore(element, rnode.element);
+    removeElement(rnode);
   }
 
-  return newElement;
+  rnode.element = element;
+
+  if (rnode.nextVnode instanceof VNode && typeof rnode.nextVnode.type === 'string') {
+    updateElement(rnode);
+    rnode.nextVnode.children.forEach((childVnode) => {
+      const childRnode = new RNode();
+      childRnode.parent = rnode;
+      rnode.children.push(childRnode);
+      patch(childRnode, childVnode)
+    });
+  }
 }
 
-export const removeElement = (parent: HTMLElement | Text | ChildNode & Node, element: HTMLElement | Text | ChildNode & Node) => {
-  [].map.call(element.childNodes, (node) => {
-    removeElement(element, node);
-  });
-
-  if (element["_props"] && element["_props"].onremove) {
-    element["_props"].onremove(element);
-  }
-
-  parent.removeChild(element);
+export const removeElement = (rnode: RNode) => {
+  rnode.getParentElement().removeChild(rnode.getChildElement());
 }
 
-export const updateElement = (element: HTMLElement, vnode: VNode, creating: boolean = false) => {
-  const oldAttributes = element["_props"] || {};
-  Object.keys({ ...oldAttributes, ...vnode.attributes }).forEach((key) => {
-    updateAttribute(element, key, oldAttributes[key], vnode.attributes[key]);
+export const updateElement = (rnode: RNode) => {
+  const oldAttributes = (rnode.vnode && (rnode.vnode as VNode).attributes) || {};
+  const newAttributes = (rnode.nextVnode as VNode).attributes
+  Object.keys({ ...oldAttributes, ...newAttributes }).forEach((key) => {
+    updateAttribute(
+      rnode.element as HTMLElement,
+      key,
+      oldAttributes[key],
+      newAttributes[key]
+    );
   });
-
-  element["_props"] = vnode.attributes;
-
-  if (!creating && vnode.attributes.onupdate) {
-    addLifecycleEvent(() => { vnode.attributes.onupdate(element, oldAttributes); });
-  }
 }
 
 export const updateAttribute = (element: HTMLElement, attributeName: string, oldValue: any, newValue: any) => {
@@ -92,10 +73,9 @@ export const updateAttribute = (element: HTMLElement, attributeName: string, old
     } else if (attributeName[0] === 'o' && attributeName[1] === 'n') {
       const eventName = attributeName.toLowerCase().substring(2);
       if (newValue) {
-        if (!oldValue) { element.addEventListener(eventName, newValue); }
-      } else {
-        element.removeEventListener(eventName, oldValue);
+        element.addEventListener(eventName, newValue);
       }
+      element.removeEventListener(eventName, oldValue);
     } else if (!newValue) {
       element.removeAttribute(attributeName);
     } else {

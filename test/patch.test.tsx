@@ -1,14 +1,14 @@
 import { r } from '../src';
 import { patch } from '../src/patch';
 import { createElement } from '../src/dom';
-import { withState } from '../src/component';
+import { withState } from '../src/oldVnode';
 import { createApp } from '../src/app';
 
-const testPatch = (oldComponent, newComponent, html) => {
-  const element = createElement(oldComponent);
+const testPatch = (oldVnode, newVnode, html) => {
+  const [element] = createElement(oldVnode);
   document.body.firstChild.appendChild(element);
 
-  patch(document.body.firstChild as HTMLElement | Text, element, newComponent);
+  patch(document.body.firstChild as HTMLElement | Text, element, newVnode);
 
   expect(document.body.innerHTML).toBe(html);
 };
@@ -18,205 +18,205 @@ beforeEach(() => {
 });
 
 test('when boolean', () => {
-  const component = 'abcd'
-  const newComponent = true;
-  testPatch(component, newComponent, '<div></div>');
+  const oldVnode = 'abcd'
+  const newVnode = true;
+  testPatch(oldVnode, newVnode, '<div></div>');
 });
 
 test('when they are the same', () => {
-  const component = 'abcd';
-  const newComponent = component;
-  testPatch(component, newComponent, '<div>abcd</div>');
+  const oldVnode = 'abcd';
+  const newVnode = oldVnode;
+  testPatch(oldVnode, newVnode, '<div>abcd</div>');
 });
 
 test('when text changes', () => {
-  const component = 'abcd';
-  const newComponent = 'abcde';
-  testPatch(component, newComponent, '<div>abcde</div>');
+  const oldVnode = 'abcd';
+  const newVnode = 'abcde';
+  testPatch(oldVnode, newVnode, '<div>abcde</div>');
 });
 
 test('when text changes to number', () => {
-  const component = 'abcd';
-  const newComponent = 3;
-  testPatch(component, newComponent, '<div>3</div>');
+  const oldVnode = 'abcd';
+  const newVnode = 3;
+  testPatch(oldVnode, newVnode, '<div>3</div>');
 });
 
-test('when text changes to component', () => {
-  const component = 'abcd';
-  const newComponent = <div>abcd</div>;
-  testPatch(component, newComponent, '<div><div>abcd</div></div>');
+test('when text changes to oldVnode', () => {
+  const oldVnode = 'abcd';
+  const newVnode = <div>abcd</div>;
+  testPatch(oldVnode, newVnode, '<div><div>abcd</div></div>');
 });
 
-test('when component changes to text', () => {
-  const component = <div>abcd</div>;
-  const newComponent = 'abcd';
-  testPatch(component, newComponent, '<div>abcd</div>');
+test('when oldVnode changes to text', () => {
+  const oldVnode = <div>abcd</div>;
+  const newVnode = 'abcd';
+  testPatch(oldVnode, newVnode, '<div>abcd</div>');
 });
 
-test('when component changes to number', () => {
-  const component = <div>abcd</div>;
-  const newComponent = 3;
-  testPatch(component, newComponent, '<div>3</div>');
+test('when oldVnode changes to number', () => {
+  const oldVnode = <div>abcd</div>;
+  const newVnode = 3;
+  testPatch(oldVnode, newVnode, '<div>3</div>');
 });
 
-test('when component changes to another type of component', () => {
-  const component = <div>abcd</div>;
-  const newComponent = <span>abcd</span>;
-  testPatch(component, newComponent, '<div><span>abcd</span></div>');
+test('when oldVnode changes to another type of oldVnode', () => {
+  const oldVnode = <div>abcd</div>;
+  const newVnode = <span>abcd</span>;
+  testPatch(oldVnode, newVnode, '<div><span>abcd</span></div>');
 });
 
-test('when component changes to functional component', () => {
-  const component = <div>abcd</div>
+test('when oldVnode changes to functional oldVnode', () => {
+  const oldVnode = <div>abcd</div>
   const Functional = (props) => <div>functional</div>
-  testPatch(component, <Functional />, '<div><div>functional</div></div>');
+  testPatch(oldVnode, <Functional />, '<div><div>functional</div></div>');
 });
 
 describe('when children change', () => {
-  test('when children components reorder', () => {
-    const component = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main><div key="b">B</div><div key="c">C</div><div key="a">A</div></main>;
+  test('when children oldVnodes reorder', () => {
+    const oldVnode = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main><div key="b">B</div><div key="c">C</div><div key="a">A</div></main>;
     const html = '<div><main><div>B</div><div>C</div><div>A</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('when adding children component in between', () => {
-    const component = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main>
+  test('when adding children oldVnode in between', () => {
+    const oldVnode = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main>
       <div key="a">A</div><div key="d">D</div><div key="b">B</div><div key="c">C</div>
     </main>;
     const html = '<div><main><div>A</div><div>D</div><div>B</div><div>C</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('when adding children component to end', () => {
-    const component = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main>
+  test('when adding children oldVnode to end', () => {
+    const oldVnode = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main>
       <div key="a">A</div><div key="b">B</div><div key="c">C</div><div key="d">D</div>
     </main>;
     const html = '<div><main><div>A</div><div>B</div><div>C</div><div>D</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('when removing child components in between', () => {
-    const component = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main><div key="a">A</div><div key="c">C</div></main>;
+  test('when removing child oldVnodes in between', () => {
+    const oldVnode = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main><div key="a">A</div><div key="c">C</div></main>;
     const html = '<div><main><div>A</div><div>C</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('when removing child components from the end', () => {
-    const component = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main><div key="a">A</div><div key="b">B</div></main>;
+  test('when removing child oldVnodes from the end', () => {
+    const oldVnode = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main><div key="a">A</div><div key="b">B</div></main>;
     const html = '<div><main><div>A</div><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
   test('when moving non-keyed element', () => {
-    const component = <main><div>A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main><div key="b">B</div><div key="c">C</div><div>A</div></main>;
+    const oldVnode = <main><div>A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main><div key="b">B</div><div key="c">C</div><div>A</div></main>;
     const html = '<div><main><div>B</div><div>C</div><div>A</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
   test('when remove non-keyed element add keyed', () => {
-    const component = <main><div>A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main><div key="b">B</div><div key="c">C</div><div key="a">A</div></main>;
+    const oldVnode = <main><div>A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main><div key="b">B</div><div key="c">C</div><div key="a">A</div></main>;
     const html = '<div><main><div>B</div><div>C</div><div>A</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
   test('when add non-keyed element remove keyed', () => {
-    const component = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
-    const newComponent = <main>
+    const oldVnode = <main><div key="a">A</div><div key="b">B</div><div key="c">C</div></main>;
+    const newVnode = <main>
       <div key="b">B</div><div>C</div><div key="a">A</div><div>D</div>
     </main>;
     const html = '<div><main><div>B</div><div>C</div><div>A</div><div>D</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
   test('removing non-keyed elements', () => {
-    const component = <main><div>A</div><div>B</div><div>D</div><div key="c">C</div></main>;
-    const newComponent = <main>
+    const oldVnode = <main><div>A</div><div>B</div><div>D</div><div key="c">C</div></main>;
+    const newVnode = <main>
       <div key="b">B</div><div key="c"><p>C</p></div><div key="a">A</div>
     </main>;
     const html = '<div><main><div>B</div><div><p>C</p></div><div>A</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('change from element to component', () => {
-    const component = <main><div>A</div></main>;
+  test('change from element to oldVnode', () => {
+    const oldVnode = <main><div>A</div></main>;
     const view = (props) => <div>B</div>
-    const NewComponent = withState({}, {})(view);
-    const newComponent = <main><NewComponent /></main>
+    const newVnode = withState({}, {})(view);
+    const newVnode = <main><newVnode /></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('change from same component to component', () => {
+  test('change from same oldVnode to oldVnode', () => {
     const view = (props) => <div>{props.value}</div>
-    const Component = withState({}, {})(view);
-    const component = <main><Component value="A" /></main>;
-    const newComponent = <main><Component value="B" /></main>
+    const oldVnode = withState({}, {})(view);
+    const oldVnode = <main><oldVnode value="A" /></main>;
+    const newVnode = <main><oldVnode value="B" /></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('change from component to element', () => {
+  test('change from oldVnode to element', () => {
     const view = (props) => <div>{props.value}</div>
-    const Component = withState({}, {})(view);
-    const component = <main><Component value="A" /></main>;
-    const newComponent = <main><div>B</div></main>
+    const oldVnode = withState({}, {})(view);
+    const oldVnode = <main><oldVnode value="A" /></main>;
+    const newVnode = <main><div>B</div></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
   test('change from element to functional', () => {
-    const Component = (props) => <div>{props.value}</div>
-    const component = <main><div>A</div></main>;
-    const newComponent = <main><Component value="B" /></main>
+    const oldVnode = (props) => <div>{props.value}</div>
+    const oldVnode = <main><div>A</div></main>;
+    const newVnode = <main><oldVnode value="B" /></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
   test('change from functional to functional', () => {
-    const Component = (props) => <div>{props.value}</div>
-    const component = <main><Component value="A" /></main>;
-    const newComponent = <main><Component value="B" /></main>
+    const oldVnode = (props) => <div>{props.value}</div>
+    const oldVnode = <main><oldVnode value="A" /></main>;
+    const newVnode = <main><oldVnode value="B" /></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
   test('change from functional to element', () => {
-    const Component = (props) => <div>{props.value}</div>
-    const component = <main><Component value="A" /></main>;
-    const newComponent = <main><div>B</div></main>
+    const oldVnode = (props) => <div>{props.value}</div>
+    const oldVnode = <main><oldVnode value="A" /></main>;
+    const newVnode = <main><div>B</div></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('change from functional to component', () => {
+  test('change from functional to oldVnode', () => {
     const View = (props) => <div>{props.value}</div>;
-    const component = <main><View value="A" /></main>;
-    const NewComponent = withState({}, {})(View);
-    const newComponent = <main><NewComponent value="B" /></main>
+    const oldVnode = <main><View value="A" /></main>;
+    const newVnode = withState({}, {})(View);
+    const newVnode = <main><newVnode value="B" /></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('change from component to functional', () => {
+  test('change from oldVnode to functional', () => {
     const View = (props) => <div>{props.value}</div>;
-    const Component = withState({}, {})(View);
-    const component = <main><Component value="A" /></main>;
-    const newComponent = <main><View value="B" /></main>
+    const oldVnode = withState({}, {})(View);
+    const oldVnode = <main><oldVnode value="A" /></main>;
+    const newVnode = <main><View value="B" /></main>
     const html = '<div><main><div>B</div></main></div>';
-    testPatch(component, newComponent, html);
+    testPatch(oldVnode, newVnode, html);
   });
 
-  test('component with state', () => {
+  test('oldVnode with state', () => {
     const app = createApp({ counter: 2 }, {});
-    const component = <main><div>1</div></main>;
-    const Component = props => ({ state: globalState }) => <div>{globalState.counter}</div>;
-    const newComponent = <main><Component /></main>;
-    testPatch(component, newComponent, '<div><main><div>2</div></main></div>');
+    const oldVnode = <main><div>1</div></main>;
+    const oldVnode = props => ({ state: globalState }) => <div>{globalState.counter}</div>;
+    const newVnode = <main><oldVnode /></main>;
+    testPatch(oldVnode, newVnode, '<div><main><div>2</div></main></div>');
   });
 });

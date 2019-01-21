@@ -1,15 +1,17 @@
-import { VNodeName, VNodeKey, VNodeAttributes, VNodeChild } from './index.d';
+import { VNodeChild, Props } from './index.d';
 
-export class VNode {
-  type: VNodeName;
+class VNode {
+  type: string | Function;
   children: VNodeChild[];
-  key?: VNodeKey;
-  attributes: VNodeAttributes;
+  key?: string;
+  attributes: Props;
 
-  constructor(type: VNodeName, attributes: VNodeAttributes, children: VNodeChild[]) {
+  constructor(type: string | Function, attributes: Props, children: VNodeChild[]) {
     this.type = type;
     this.attributes = attributes || {};
     this.children = children;
     this.key = (attributes && attributes.key) || null
   }
 }
+
+export default VNode;

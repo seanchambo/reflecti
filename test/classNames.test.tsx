@@ -1,4 +1,4 @@
-import { classNames } from '../src/classNames';
+import classNames from '../src/classNames';
 
 test('null', () => {
   expect(classNames(undefined)).toBe(null);

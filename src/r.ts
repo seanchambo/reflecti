@@ -1,5 +1,5 @@
-import { VNodeName, VNodeAttributes, VNodeChild } from './index.d';
-import { VNode } from './vnode';
+import { Props } from './index.d';
+import VNode from './vnode';
 
 const flatten = (thing: any): any => {
   return thing.reduce(
@@ -16,8 +16,10 @@ const flatten = (thing: any): any => {
     }, []);
 };
 
-export const r = (name: VNodeName, props?: VNodeAttributes, ...children) => {
+const r = (name: string | Function, props?: Props, ...children) => {
   children = flatten(children);
 
   return new VNode(name, props, children);
 }
+
+export default r;

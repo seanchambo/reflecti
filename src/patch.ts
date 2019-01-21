@@ -1,109 +1,148 @@
-import { VNode } from "./vnode";
-import { replaceElement, updateElement, createElement, removeElement } from './dom';
-import { Component } from './component';
+import { View } from "./index.d";
+import RNode from "./rnode";
+import VNode from "./vnode";
+import { replaceElement, updateElement, removeElement } from './dom';
+import { Component } from "./component";
 
-export const patch = (parent: HTMLElement | Text, element: HTMLElement | Text, vnode: any | VNode): HTMLElement | Text => {
-  let newElement: HTMLElement | Text = element;
-
-  if (vnode instanceof VNode) {
-    if (typeof vnode.type === 'function') {
-      newElement = patchComponent(parent, element, vnode);
+const patch = (rnode: RNode, vnode: string | VNode) => {
+  if (vnode instanceof VNode && typeof vnode.type === 'function') {
+    // Component
+    rnode.nextVnode = vnode;
+    patchComponent(rnode);
+    rnode.element = null;
+  } else if (vnode instanceof VNode && typeof vnode.type === 'string') {
+    // Element
+    rnode.nextVnode = vnode;
+    if (!rnode.element || rnode.element instanceof Text || vnode.type.toLowerCase() !== rnode.element.nodeName.toLowerCase()) {
+      replaceElement(rnode);
     } else {
-      if (!element || element instanceof Text || vnode.type.toLowerCase() !== element.nodeName.toLowerCase()) {
-        newElement = replaceElement(parent, element, vnode);
-      } else {
-        updateElement(element, vnode);
-        patchChildren(element, vnode);
-      }
+      updateElement(rnode);
+      patchChildren(rnode);
     }
+    rnode.component = null;
   } else {
+    // Text Element
     let text = ''
     if (vnode && typeof vnode !== 'boolean') { text = String(vnode) }
-    if (element && element instanceof Text && element.nodeValue !== text) {
-      element.nodeValue = text;
+
+    rnode.nextVnode = text;
+
+    if (rnode.element && rnode.element instanceof Text && rnode.element.nodeValue !== text) {
+      rnode.element.nodeValue = text;
     } else {
-      newElement = replaceElement(parent, element, text);
+      replaceElement(rnode);
     }
+
+    rnode.component = null;
   }
 
-  return newElement;
+  rnode.vnode = rnode.nextVnode;
 }
 
-export const patchComponent = (parent: HTMLElement | Text, element: HTMLElement | Text, vnode: VNode): HTMLElement | Text => {
-  if (!element) { return replaceElement(parent, element, vnode) }
+const patchComponent = (rnode: RNode) => {
+  if (rnode.nextVnode instanceof VNode) {
+    // Sanity check
+    if (
+      rnode.vnode &&
+      ((rnode.vnode as VNode).type as Function).prototype &&
+      (rnode.nextVnode.type as Function).prototype &&
+      ((rnode.vnode as VNode).type as Function).prototype === (rnode.nextVnode.type as Function).prototype) {
+      // Components that are equal
+      rnode.component.props = rnode.nextVnode.attributes;
+    } else {
+      if ((rnode.nextVnode.type as Function).prototype) {
+        // New component
+        rnode.component = new ((rnode.nextVnode as VNode).type as Function).prototype.constructor(rnode.nextVnode.attributes, rnode.nextVnode.children);
+      } else {
+        // Stateless component
+        rnode.component = new Component(rnode.nextVnode.attributes, rnode.nextVnode.children);
+        rnode.component.view = rnode.nextVnode.type as View
+      }
+    }
 
-  let newComponent = element["_component"];
-  vnode.type = vnode.type as Function;
-  const componentConstructor = newComponent && newComponent.constructor;
-  const vnodeConstructor = vnode.type.prototype && vnode.type.prototype.constructor;
+    if (typeof rnode.vnode === 'string' || rnode.vnode instanceof VNode && typeof rnode.vnode.type === 'string') {
+      removeElement(rnode);
+    }
 
-  if (newComponent && componentConstructor && vnodeConstructor && componentConstructor === vnodeConstructor) {
-    newComponent.props = vnode.attributes;
+    const rendered: VNode | string = rnode.component.render();
+    let childRnode: RNode = rnode.children.shift();
+    if (!childRnode) {
+      childRnode = new RNode();
+      childRnode.parent = rnode;
+    }
+    rnode.children = [childRnode];
+    rnode.component._rnode = rnode;
+    rnode.component._vnode = rnode.nextVnode;
+    patch(childRnode, rendered);
   } else {
-    if (vnodeConstructor) {
-      newComponent = new vnodeConstructor(vnode.attributes, vnode.children);
-    } else {
-      newComponent = new Component(vnode.attributes, vnode.children);
-      newComponent.view = vnode.type;
-    }
+    throw new Error('Cant call patchComponent on a string vNode');
   }
-
-  const rendered = newComponent.render();
-  const newElement = patch(parent, element, rendered);
-
-  newComponent._element = newElement;
-  newElement['_component'] = newComponent;
-  return newElement;
 }
 
-export const patchChildren = (element: HTMLElement, vnode: VNode) => {
-  const oldElements: Node[] = [];
-  const oldUnkeyed: { [key: string]: any }[] = [];
-  const oldKeys: { [key: string]: { [key: string]: any } } = {};
-  const newKeys: { [key: string]: VNode | string } = {};
+const patchChildren = (rnode: RNode) => {
+  const oldUnkeyed: { index: number, rnode: RNode }[] = [];
+  const oldKeys: { [key: string]: { index: number, rnode: RNode } } = {};
+  const newKeys: { [key: string]: RNode } = {};
+  const newChildren: RNode[] = [];
 
-  [].map.call(element.childNodes, (childNode, index) => {
-    oldElements.push(childNode);
-
-    if (childNode instanceof HTMLElement && childNode["_props"] && childNode["_props"]["key"]) {
-      oldKeys[childNode["_props"]["key"]] = { index, element: childNode }
+  rnode.children.forEach((childRnode, index) => {
+    if (childRnode.vnode instanceof VNode && childRnode.vnode.key) {
+      oldKeys[childRnode.vnode.key] = { index, rnode: childRnode }
     } else {
-      oldUnkeyed.push({ index, element: childNode });
+      oldUnkeyed.push({ index, rnode: childRnode });
     }
   });
 
-  vnode.children.forEach((child, index) => {
-    let newKey: string | number = null;
+  (rnode.nextVnode as VNode).children.forEach((childVnode, index) => {
+    let newKey: string = null;
+    let newRnode: RNode = null;
 
-    if (child instanceof VNode && child.key) { newKey = child.key }
+    if (childVnode instanceof VNode && childVnode.key) { newKey = childVnode.key };
 
     if (oldKeys[newKey] || newKey === null) {
-      const movedComponent = oldKeys[newKey] || oldUnkeyed.pop();
+      const movedNode = oldKeys[newKey] || oldUnkeyed.shift();
 
-      if (!movedComponent) {
-        element.insertBefore(createElement(child), element.childNodes[index]);
+      if (!movedNode) {
+        const childRnode = new RNode();
+        childRnode.parent = rnode;
+        newRnode = childRnode;
+        patch(childRnode, childVnode);
       } else {
-        if (index === movedComponent.index) {
-          patch(element, movedComponent.element, child);
+        newRnode = movedNode.rnode;
+        if (index === movedNode.index) {
+          patch(movedNode.rnode, childVnode);
         } else {
-          patch(element, element.insertBefore(movedComponent.element, element.childNodes[index]), child)
+          const parentElement = rnode.getParentElement();
+          if (movedNode.rnode.element) {
+            parentElement.insertBefore(movedNode.rnode.element, parentElement.childNodes[index]);
+          }
+          patch(movedNode.rnode, childVnode);
         }
       }
     } else {
-      element.insertBefore(createElement(child), element.childNodes[index]);
+      const childRnode = new RNode();
+      childRnode.parent = rnode;
+      newRnode = childRnode;
+      patch(childRnode, childVnode);
     }
 
-    if (newKey) { newKeys[newKey] = child }
+    newChildren.push(newRnode);
+    if (newKey) { newKeys[newKey] = newRnode }
   });
 
-  oldElements.forEach((childNode) => {
-    const key = childNode["_props"] && childNode["_props"]["key"] || null
-    if (childNode instanceof HTMLElement && childNode["_props"] && key && !newKeys[key]) {
-      removeElement(element, childNode);
+  rnode.children.forEach((childRnode) => {
+    if (childRnode.getChildElement() && childRnode.vnode instanceof VNode && childRnode.vnode.key && !newKeys[childRnode.vnode.key]) {
+      removeElement(childRnode);
     }
   });
 
   oldUnkeyed.forEach((data) => {
-    removeElement(element, data.element);
+    if (data.rnode.element) {
+      removeElement(data.rnode);
+    }
   });
+
+  rnode.children = newChildren;
 }
+
+export default patch;

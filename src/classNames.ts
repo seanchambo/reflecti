@@ -15,7 +15,9 @@ const getClassNameArray = (possible: any): string[] => {
   return possibleClassNames;
 };
 
-export const classNames = (possible: any): string => {
+const classNames = (possible: any): string => {
   if (possible === null || possible === undefined) { return null; }
   return getClassNameArray(possible).join(' ');
 };
+
+export default classNames;

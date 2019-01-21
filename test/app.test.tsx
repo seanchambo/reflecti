@@ -1,6 +1,5 @@
-import { r } from '../src/r';
-import { createApp } from '../src/app';
-import { mount } from '../src/mount';
+import r from '../src/r';
+import createApp from '../src/app';
 
 beforeEach(() => {
   document.body.innerHTML = '';
@@ -24,15 +23,15 @@ describe('executing an action', () => {
       { increment: (value) => ({ counter: value }) }
     )
 
-    const Component = (props) => ({ state, actions }) => <div>{state.counter}</div>;
-    mount(<Component />, document.body);
+    const Component = (props) => <div>{app.state.counter}</div>;
+    app.mount(<Component />, document.body.firstChild as HTMLElement);
 
-    expect(document.body.innerHTML).toBe('<div>1</div>')
+    expect(document.body.innerHTML).toBe('<div><div>1</div></div>')
 
     app.actions.increment(4);
 
     expect(app.state.counter).toBe(4)
-    expect(document.body.innerHTML).toBe('<div>4</div>')
+    expect(document.body.innerHTML).toBe('<div><div>4</div></div>')
   });
 
   test('based on previous state', () => {
@@ -40,18 +39,18 @@ describe('executing an action', () => {
 
     const app = createApp(
       { counter: 0 },
-      { increment: (value) => (state) => ({ counter: state.counter + value }) }
+      { increment: (value) => ({ counter: app.state.counter + value }) }
     )
 
-    const Component = (props) => ({ state, actions }) => <div>{state.counter}</div>;
-    mount(<Component />, document.body);
+    const Component = (props) => <div>{app.state.counter}</div>;
+    app.mount(<Component />, document.body.firstChild as HTMLElement);
 
-    expect(document.body.innerHTML).toBe('<div>0</div>')
+    expect(document.body.innerHTML).toBe('<div><div>0</div></div>')
 
     app.actions.increment(1);
 
     expect(app.state.counter).toBe(1)
-    expect(document.body.innerHTML).toBe('<div>1</div>')
+    expect(document.body.innerHTML).toBe('<div><div>1</div></div>')
   });
 
   test('returning null', () => {
@@ -62,14 +61,14 @@ describe('executing an action', () => {
       { increment: (value) => null }
     )
 
-    const Component = (props) => ({ state, actions }) => <div>{state.counter}</div>;
-    mount(<Component />, document.body);
+    const Component = (props) => <div>{app.state.counter}</div>;
+    app.mount(<Component />, document.body.firstChild as HTMLElement);
 
-    expect(document.body.innerHTML).toBe('<div>1</div>')
+    expect(document.body.innerHTML).toBe('<div><div>1</div></div>')
 
     app.actions.increment(4);
 
     expect(app.state.counter).toBe(1)
-    expect(document.body.innerHTML).toBe('<div>1</div>')
+    expect(document.body.innerHTML).toBe('<div><div>1</div></div>')
   });
 });

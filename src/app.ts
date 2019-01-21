@@ -1,15 +1,33 @@
-import { App, State, Actions } from "./index.d";
-import { patch } from "./patch";
-import { flushLifecycleEvents } from "./lifecycle";
+import { State, Actions } from "./index.d";
+import RNode from './rnode';
+import VNode from './vnode';
+import patch from './patch';
 
-export const app: App = {
-  state: null,
-  actions: null,
-  _element: null,
-  _rootVNode: null,
-};
+class App {
+  state: State;
+  actions: Actions;
 
-export const createApp = (state: State, actions: Actions) => {
+  _rnode: RNode;
+  _vnode: VNode | string;
+
+  mount(vnode: VNode | string, element: HTMLElement) {
+    const parentRnode = new RNode();
+    parentRnode.element = element;
+
+    const appRnode = new RNode();
+    appRnode.parent = parentRnode;
+    parentRnode.children = [appRnode];
+    this._rnode = appRnode;
+    this._vnode = vnode;
+
+    window['structure'] = this._rnode;
+
+    patch(this._rnode, this._vnode);
+  }
+}
+
+const createApp = (state: State, actions: Actions): App => {
+  const app = new App();
   app.state = state;
   app.actions = {};
 
@@ -17,17 +35,14 @@ export const createApp = (state: State, actions: Actions) => {
     app.actions[action] = (...args) => {
       let result = actions[action](...args);
 
-      if (typeof result === 'function') {
-        result = result(app.state, app.actions);
-      }
-
       if (result && result !== app.state) {
         app.state = { ...app.state, ...result };
-        app._element = patch(app._element.parentNode as HTMLElement, app._element, app._rootVNode);
-        flushLifecycleEvents();
+        patch(app._rnode, app._vnode);
       }
     }
   }
 
   return app;
 }
+
+export default createApp;

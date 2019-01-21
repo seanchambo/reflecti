@@ -1,19 +1,19 @@
-import { State, Actions, View, VNodeAttributes, VNodeChild, ComponentInterface } from "./index.d";
-import { app } from './app';
-import { VNode } from './vnode';
-import { patch } from './patch';
-import { flushLifecycleEvents } from "./lifecycle";
+import { State, VNodeChild, View, Actions, Props } from "./index.d";
+import RNode from "./rnode";
+import VNode from "./vnode";
+import patch from './patch';
 
-export class Component implements ComponentInterface {
+export class Component {
   state: State;
   actions: Actions;
-  props: VNodeAttributes;
+  props: Props;
   children: VNodeChild[];
   view: View;
 
-  _element: HTMLElement | Text;
+  _rnode: RNode;
+  _vnode: VNode;
 
-  constructor(props?: VNodeAttributes, children?: VNodeChild[]) {
+  constructor(props?: Props, children?: VNodeChild[]) {
     this.props = props;
     this.children = children;
   }
@@ -22,41 +22,37 @@ export class Component implements ComponentInterface {
     let result = this.view(this.props, this.children);
 
     if (typeof result === 'function') {
-      result = result({ state: app.state, actions: app.actions }, { state: this.state, actions: this.actions });
+      result = result({ state: this.state, actions: this.actions });
     }
 
     return result;
   }
 }
 
-export const withState = (state: State, actions: Actions) => {
-  return (view: View) => {
-    return class extends Component {
-      constructor(props?: VNodeAttributes, children?: VNodeChild[]) {
-        super(props, children);
+const withState = (state: State, actions: Actions) => (view: View) =>
+  class extends Component {
+    constructor(props?: Props, children?: VNodeChild[]) {
+      super(props, children);
 
-        this.state = state;
-        this.view = view;
-        this.actions = {};
+      this.state = state;
+      this.view = view;
+      this.actions = {};
 
-        for (const action in actions) {
-          this.actions[action] = (...args) => {
-            let result = actions[action](...args);
+      for (const action in actions) {
+        this.actions[action] = (...args) => {
+          let result = actions[action](...args);
 
-            if (typeof result === 'function') {
-              result = result(this.state, this.actions);
-            }
+          if (typeof result === 'function') {
+            result = result({ state: this.state, actions: this.actions });
+          }
 
-            if (result && result !== this.state) {
-              this.state = { ...this.state, ...result };
-              const rendered = this.render();
-              this._element = patch(this._element.parentNode as HTMLElement, this._element, rendered);
-              this._element["component"] = this;
-              flushLifecycleEvents();
-            }
+          if (result && result !== this.state) {
+            this.state = { ...this.state, ...result };
+            patch(this._rnode, this._vnode);
           }
         }
       }
     }
   }
-}
+
+export default withState;
