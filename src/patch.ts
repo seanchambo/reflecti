@@ -137,7 +137,7 @@ const patchChildren = (rnode: RNode) => {
   });
 
   oldUnkeyed.forEach((data) => {
-    if (data.rnode.element) {
+    if (data.rnode.getChildElement()) {
       removeElement(data.rnode);
     }
   });
