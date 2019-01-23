@@ -27,10 +27,13 @@ const actions = {
     switch (filterType) {
       case 'ALL':
         fn = () => { return true; }
+        break;
       case 'ACTIVE':
         fn = record => !record.completed
+        break;
       case 'COMPLETED':
         fn = record => record.completed
+        break;
     }
 
     return { filter: { type: filterType, fn } };
@@ -48,6 +51,8 @@ const View = (props) => {
       ondelete={() => { app.actions.deleteTodo(todo); }}
       ontoggle={() => { app.actions.toggleTodo(todo); }} />
   )
+
+  console.log(app.state.filter);
 
   if (todoItems.length) {
     main = (
@@ -71,6 +76,8 @@ const View = (props) => {
         activeCount={app.state.todos.filter(record => !record.completed).length} />
     )
   }
+
+  console.log(footer);
 
   return (
     <section className="todoapp">
