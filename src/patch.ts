@@ -113,8 +113,8 @@ const patchChildren = (rnode: RNode) => {
           patch(movedNode.rnode, childVnode);
         } else {
           const parentElement = rnode.getParentElement();
-          if (movedNode.rnode.element) {
-            parentElement.insertBefore(movedNode.rnode.element, parentElement.childNodes[index]);
+          if (movedNode.rnode.getChildElement()) {
+            parentElement.insertBefore(movedNode.rnode.getChildElement(), parentElement.childNodes[index]);
           }
           patch(movedNode.rnode, childVnode);
         }
