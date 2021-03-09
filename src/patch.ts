@@ -60,16 +60,13 @@ const patchComponent = (rnode: RNode) => {
       }
     }
 
-    if (typeof rnode.vnode === 'string' || rnode.vnode instanceof VNode && typeof rnode.vnode.type === 'string') {
+    if (rnode.getChildElement()) {
       removeElement(rnode);
     }
 
     const rendered: VNode | string = rnode.component.render();
-    let childRnode: RNode = rnode.children.shift();
-    if (!childRnode) {
-      childRnode = new RNode();
-      childRnode.parent = rnode;
-    }
+    const childRnode = new RNode();
+    childRnode.parent = rnode;
     rnode.children = [childRnode];
     rnode.component._rnode = rnode;
     rnode.component._vnode = rnode.nextVnode;
@@ -110,6 +107,9 @@ const patchChildren = (rnode: RNode) => {
       } else {
         newRnode = movedNode.rnode;
         if (index === movedNode.index) {
+          if (childVnode instanceof VNode && typeof childVnode.type === 'function') {
+            debugger;
+          }
           patch(movedNode.rnode, childVnode);
         } else {
           const parentElement = rnode.getParentElement();

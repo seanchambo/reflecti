@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest -c .jestrc.json",
     "lint": "tslint --fix src/**/*.ts",
-    "build": "rm -rf dist && tsc && babel dist --out-dir dist && uglifyjs dist/*.js -mc --source-map -o dist/reflecti.js"
+    "build": "rm -rf dist && tsc && babel dist --out-dir dist"
   },
   "files": [
     "dist/reflecti.js",

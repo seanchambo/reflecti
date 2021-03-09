@@ -1,4 +1,4 @@
-import { r, createApp } from '../../dist/reflecti';
+import { r, createApp } from '../../dist';
 
 import TodoItem from './TodoItem';
 import Footer from './Footer';
@@ -52,8 +52,6 @@ const View = (props) => {
       ontoggle={() => { app.actions.toggleTodo(todo); }} />
   )
 
-  console.log(app.state.filter);
-
   if (todoItems.length) {
     main = (
       <section className="main">
@@ -77,9 +75,7 @@ const View = (props) => {
     )
   }
 
-  console.log(footer);
-
-  return (
+  const everything = (
     <section className="todoapp">
       <div>
         <header className="header">
@@ -96,6 +92,8 @@ const View = (props) => {
       </div>
     </section>
   )
+
+  return everything
 }
 
 const app = createApp(state, actions);

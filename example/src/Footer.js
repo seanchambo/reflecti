@@ -1,4 +1,4 @@
-import { r, classNames } from '../../dist/reflecti';
+import { r, classNames } from '../../dist';
 
 const Footer = (props) => {
   return (
